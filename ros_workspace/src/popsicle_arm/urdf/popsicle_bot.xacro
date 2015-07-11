@@ -1,0 +1,176 @@
+<?xml version="1.0"?>
+<!--
+Popsicle stick robot
+Copyright (C) 2015  Shane Loretz
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="popsicle_bot">
+    <xacro:property name="base_size_x" value="0.2"/>
+    <xacro:property name="base_size_y" value="0.28"/>
+    <xacro:property name="base_size_z" value="0.06"/>
+    <xacro:property name="stick_width_small" value="0.002"/>
+    <xacro:property name="stick_width" value="0.009"/>
+    <xacro:property name="stick_length" value="0.115"/>
+    <xacro:property name="main_stand_height" value="0.11"/>
+    <xacro:property name="motor_diameter" value="0.028"/>
+    <xacro:property name="motor_width" value="0.02"/>
+    <xacro:property name="pi" value="3.141592653589793"/>
+    <xacro:macro name="material_black">
+        <material name="black">
+            <color rgba="0.25 0.25 0.25 1"/>
+        </material>
+    </xacro:macro>
+    <xacro:macro name="material_popsicle">
+        <material name="popsicle">
+            <color rgba="0.9 0.9 0.5 1"/>
+        </material>
+    </xacro:macro>
+    <xacro:macro name="material_motor">
+        <material name="motor">
+            <color rgba="0.7 0.7 0.7 1"/>
+        </material>
+    </xacro:macro>
+
+    <link name="base_link">
+        <visual>
+            <geometry>
+                <box size="${base_size_x} ${base_size_y} ${base_size_z}"/>
+            </geometry>
+            <origin xyz="${base_size_x/2.0} ${-base_size_y/2.0} ${base_size_z/2.0}"/>
+        <xacro:material_black/>
+        </visual>
+    </link>
+    
+    <joint name="base_to_main_stand" type="fixed">
+        <parent link="base_link"/>
+        <child link="main_stand"/>
+        <origin xyz="0.051 -0.06 ${base_size_z}"/>
+    </joint>
+    
+    <link name="main_stand">
+        <visual>
+            <geometry>
+                <box size="${stick_width_small} ${stick_width} ${main_stand_height}"/>
+            </geometry>
+            <origin xyz="0 0 ${main_stand_height/2.0}"/>
+        <xacro:material_popsicle/>
+        </visual>
+    </link>
+
+    <joint name="main_stand_to_motor_1" type="fixed">
+        <parent link="main_stand"/>
+        <child link="motor_1"/>
+        <origin xyz="${-stick_width_small/2.0} -0.001 0.087"/>
+    </joint>
+
+    <link name="motor_1">
+        <visual>
+            <geometry>
+                <mesh filename="package://popsicle_arm/urdf/Stepper_motor_28BYJ-48.stl" scale="0.001 0.001 0.001"/>
+            </geometry>
+            <origin rpy="${0.0} ${pi/2.0} ${-pi/2.0}" xyz="-0.019 0.024 0.021"/>
+            <xacro:material_motor/>
+        </visual>
+    </link>
+    
+    <xacro:property name="plastic_x" value="0.0027"/>
+    <xacro:property name="plastic_y" value="0.038"/>
+    <xacro:property name="plastic_z" value="0.023"/>
+
+    <joint name="motor_1_to_plastic_1" type="continuous">
+        <parent link="motor_1"/>
+        <child link="plastic_1"/>
+        <axis xyz="1 0 0"/>
+        <origin xyz="${0.006} ${-0.008} ${0.0}"/>
+    </joint>
+
+    <link name="plastic_1">
+        <visual>
+            <geometry>
+                <box size="${plastic_x} ${plastic_y} ${plastic_z}"/>
+            </geometry>
+            <origin xyz="0.0 ${-plastic_y/2.0+0.01} 0"/>
+        <xacro:material_black/>
+        </visual>
+    </link>
+    
+    <joint name="plastic_1_to_m1_arm" type="fixed">
+        <parent link="plastic_1"/>
+        <child link="m1_arm"/>
+        <origin xyz="${plastic_x/2.0} ${-plastic_y/2.0+0.008} ${-plastic_z/2.0}"/>
+    </joint>
+    
+    <link name="m1_arm">
+        <visual>
+            <geometry>
+                <box size="${stick_width_small} ${stick_width} ${stick_length}"/>
+            </geometry>
+            <origin xyz="0 0 ${stick_length/2.0}"/>
+            <xacro:material_popsicle/>
+        </visual>
+    </link>
+    
+    <joint name="m1_arm_to_motor_2" type="fixed">
+        <parent link="m1_arm"/>
+        <child link="motor_2"/>
+        <origin xyz="${-stick_width_small/2.0} -0.001 0.092"/>
+    </joint>
+
+    <link name="motor_2">
+        <visual>
+            <geometry>
+                <mesh filename="package://popsicle_arm/urdf/Stepper_motor_28BYJ-48.stl" scale="0.001 0.001 0.001"/>
+            </geometry>
+            <origin rpy="${0.0} ${pi/2.0} ${-pi/2.0}" xyz="-0.019 0.024 0.021"/>
+            <xacro:material_motor/>
+        </visual>
+    </link>
+    
+    <joint name="motor_2_to_plastic_2" type="continuous">
+        <parent link="motor_2"/>
+        <child link="plastic_2"/>
+        <axis xyz="1 0 0"/>
+        <origin xyz="${0.006} ${-0.008} ${0.0}"/>
+    </joint>
+
+    <link name="plastic_2">
+        <visual>
+            <geometry>
+                <box size="${plastic_x} ${plastic_y} ${plastic_z}"/>
+            </geometry>
+            <origin xyz="0.0 ${-plastic_y/2.0+0.01} 0"/>
+        <xacro:material_black/>
+        </visual>
+    </link>
+    
+    <joint name="plastic_2_to_m2_arm" type="fixed">
+        <parent link="plastic_2"/>
+        <child link="m2_arm"/>
+        <origin xyz="${plastic_x/2.0} ${-plastic_y/2.0+0.008} ${-plastic_z/2.0}"/>
+    </joint>
+    
+    <link name="m2_arm">
+        <visual>
+            <geometry>
+                <box size="${stick_width_small} ${stick_width} ${stick_length}"/>
+            </geometry>
+            <origin xyz="0 0 ${stick_length/2.0}"/>
+            <xacro:material_popsicle/>
+        </visual>
+    </link>
+
+
+</robot>
