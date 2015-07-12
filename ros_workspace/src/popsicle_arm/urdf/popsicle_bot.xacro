@@ -172,5 +172,23 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         </visual>
     </link>
 
+    <joint name="m2_arm_to_end" type="fixed">
+        <parent link="m2_arm"/>
+        <child link="end"/>
+        <origin xyz="0 0 ${stick_length}"/>
+    </joint>
+    
+    <link name="end">
+        <visual>
+            <geometry>
+                <box size="${stick_width*1.5} ${stick_width*1.5} ${stick_width*1.5}"/>
+            </geometry>
+            <origin xyz="0 0 0"/>
+            <material name="end">
+                <color rgba="0.0 0.0 1.0 0.5"/>
+            </material>
+        </visual>
+    </link>
+
 
 </robot>
