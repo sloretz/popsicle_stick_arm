@@ -30,7 +30,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     <xacro:property name="pi" value="3.141592653589793"/>
     <xacro:macro name="material_black">
         <material name="black">
-            <color rgba="0.25 0.25 0.25 1"/>
+            <color rgba="0.15 0.15 0.15 1"/>
         </material>
     </xacro:macro>
     <xacro:macro name="material_popsicle">
