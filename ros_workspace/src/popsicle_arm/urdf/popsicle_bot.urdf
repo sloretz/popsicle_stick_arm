@@ -60,7 +60,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
       </geometry>
       <origin rpy="0.0 1.57079632679 -1.57079632679" xyz="-0.019 0.024 0.021"/>
       <material name="motor">
-        <color rgba="0.7 0.7 0.7 1"/>
+        <color rgba="0.5 0.5 0.5 1"/>
       </material>
     </visual>
   </link>
@@ -109,7 +109,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
       </geometry>
       <origin rpy="0.0 1.57079632679 -1.57079632679" xyz="-0.019 0.024 0.021"/>
       <material name="motor">
-        <color rgba="0.7 0.7 0.7 1"/>
+        <color rgba="0.5 0.5 0.5 1"/>
       </material>
     </visual>
   </link>
