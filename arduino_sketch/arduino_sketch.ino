@@ -17,36 +17,50 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "AccelStepper.h"
+#include "message_parser.h"
 
 AccelStepper stepper_1(AccelStepper::HALF4WIRE, 8,10,9,11);
 AccelStepper stepper_2(AccelStepper::HALF4WIRE, 2,4,3,5);
+MessageParser messager;
 
-const unsigned int MAX_STEPS_PER_SECOND = 500;
 const unsigned int STEPS_PER_REVOLUTION = 4076;
-const unsigned int STEP_ACCELERATION = 100;
 
 void setup()
 {
-    stepper_1.setMaxSpeed(MAX_STEPS_PER_SECOND);
-    stepper_2.setMaxSpeed(MAX_STEPS_PER_SECOND);
-    stepper_1.setAcceleration(STEP_ACCELERATION);
-    stepper_2.setAcceleration(STEP_ACCELERATION);
-    stepper_1.setSpeed(200);
-    stepper_2.setSpeed(200);
-    stepper_1.moveTo(500);
-    stepper_2.moveTo(500);
     Serial.begin(115200);
+}
+
+void applyMessage(AccelStepper &motor, const MessageParser::Message &msg)
+{
+    switch(msg.type)
+    {
+        case MessageParser::MAX_SPEED:
+            motor.setMaxSpeed(msg.max_speed.speed);
+            break;
+        case MessageParser::MOVE_RELATIVE:
+            motor.setSpeed(msg.move_relative.speed);
+            motor.setAcceleration(msg.move_relative.speed);
+            motor.move(msg.move_relative.steps);
+            break;
+        default:
+            Serial.println("Unknown message");
+            break;
+    }
 }
 
 void loop()
 {
-    if (stepper_1.distanceToGo() == 0)
+    MessageParser::Message msg;
+    if (messager.getMessage(msg))
     {
-    stepper_1.moveTo(-stepper_1.currentPosition());
-    }
-    if (stepper_2.distanceToGo() == 0)
-    {
-    stepper_2.moveTo(-stepper_2.currentPosition());
+        if (msg.motor == MessageParser::MOTOR_1)
+        {
+            applyMessage(stepper_1, msg);
+        }
+        else if (msg.motor == MessageParser::MOTOR_2)
+        {
+            applyMessage(stepper_2, msg);
+        }
     }
     stepper_1.run();
     stepper_2.run();
