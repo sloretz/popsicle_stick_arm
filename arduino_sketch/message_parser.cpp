@@ -78,13 +78,6 @@ bool MessageParser::parseMsg(Message &msg)
     //What command is this?
     switch (buffer_[idx])
     {
-        case 'S':
-            msg.type = MAX_SPEED;
-            idx++;
-            msg.max_speed.speed = parseInt(idx);
-            Serial.print("Got max speed");
-            Serial.println(msg.max_speed.speed);
-            break;
         case 'A':
             msg.type = MOVE_ABSOLUTE;
             idx++;
@@ -117,6 +110,17 @@ bool MessageParser::parseMsg(Message &msg)
             return false;
     }
     return true;
+}
+
+void MessageParser::sendFeedback(MotorNum motor, int position, int speed, int acceleration)
+{
+    Serial.print(motor);
+    Serial.print('F');
+    Serial.print(position);
+    Serial.print(',');
+    Serial.print(speed);
+    Serial.print(',');
+    Serial.println(acceleration);
 }
 
 int MessageParser::parseInt(int &idx)

@@ -32,10 +32,6 @@ class MessageParser
     
     protected:
     
-    struct MaxSpeedMsg {
-        int16_t speed;
-    };
-    
     struct MoveAbsoluteMsg{
         int16_t position;
         int16_t speed;
@@ -57,7 +53,6 @@ class MessageParser
     public:
     
     typedef enum {
-        MAX_SPEED = 1,
         MOVE_ABSOLUTE = 2,
         MOVE_RELATIVE = 3,
         MOTOR_FEEDBACK = 4
@@ -73,7 +68,6 @@ class MessageParser
         MotorNum motor;
         union
         {
-            MaxSpeedMsg max_speed;
             MoveAbsoluteMsg move_absolute;
             MoveRelativeMsg move_relative;
             MotorStateMsg motor_state;
@@ -86,6 +80,8 @@ class MessageParser
     //Parses message from Serial1 and puts it into referenced message
     //returns true iff a message is parsed
     bool getMessage(Message &msg);
+    
+    void sendFeedback(MotorNum, int position, int speed, int acceleration);
     
     protected:
     VariableArray<char> buffer_;

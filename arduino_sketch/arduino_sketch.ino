@@ -34,13 +34,15 @@ void applyMessage(AccelStepper &motor, const MessageParser::Message &msg)
 {
     switch(msg.type)
     {
-        case MessageParser::MAX_SPEED:
-            motor.setMaxSpeed(msg.max_speed.speed);
-            break;
         case MessageParser::MOVE_RELATIVE:
-            motor.setSpeed(msg.move_relative.speed);
-            motor.setAcceleration(msg.move_relative.speed);
+            motor.setMaxSpeed(msg.move_relative.speed);
+            motor.setAcceleration(msg.move_relative.acceleration);
             motor.move(msg.move_relative.steps);
+            break;
+        case MessageParser::MOVE_ABSOLUTE:
+            motor.setMaxSpeed(msg.move_absolute.speed);
+            motor.setAcceleration(msg.move_absolute.acceleration);
+            motor.moveTo(msg.move_absolute.position);
             break;
         default:
             Serial.println("Unknown message");
@@ -64,4 +66,22 @@ void loop()
     }
     stepper_1.run();
     stepper_2.run();
+
+    static unsigned long last_feedback_time = 0;
+    static int m1_last_speed = 0;
+    static int m2_last_speed = 0;
+    const unsigned long feedback_period = 50;
+    unsigned long now = millis();
+    if (last_feedback_time + feedback_period <= now)
+    {
+        int m1_new_speed = stepper_1.speed();
+        int m2_new_speed = stepper_2.speed();
+        float delta_t = now-last_feedback_time;
+        delta_t /= 1000.0;
+        messager.sendFeedback(MessageParser::MOTOR_1, stepper_1.currentPosition(), m1_new_speed, (m1_new_speed - m1_last_speed)/delta_t);
+        messager.sendFeedback(MessageParser::MOTOR_2, stepper_2.currentPosition(), m2_new_speed, (m2_new_speed - m2_last_speed)/delta_t);
+        m1_last_speed = m1_new_speed;
+        m2_last_speed = m2_new_speed;
+        last_feedback_time = now;
+    }
 }
