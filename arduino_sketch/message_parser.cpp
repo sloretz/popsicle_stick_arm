@@ -120,7 +120,8 @@ void MessageParser::sendFeedback(MotorNum motor, int position, int speed, int ac
     Serial.print(',');
     Serial.print(speed);
     Serial.print(',');
-    Serial.println(acceleration);
+    Serial.print(acceleration);
+    Serial.print('\n');
 }
 
 int MessageParser::parseInt(int &idx)
