@@ -91,12 +91,13 @@ class MotorMessage(object):
 
 class MotorInterface(object):
     def __init__(self):
-        self._pub = rospy.Publisher('joint_state', JointState, queue_size=10)
+        self._pub = rospy.Publisher('/popsicle_arm/joint_state', JointState, queue_size=10)
         self._dev = serial.Serial(port='/dev/ttyUSB0', baudrate=115200,
                 timeout=0, writeTimeout=0)
         self.motors = ['motor_1_to_plastic_1', 'motor_2_to_plastic_2']
         self._write_Q = Queue.Queue()
-        
+        self._feedback = dict()
+    
     def readOnce(self):
         #Get feedback from the motors, or send a motor command?
         try:
@@ -105,10 +106,20 @@ class MotorInterface(object):
             return False
         
         if msg:
-            #take action
             if msg.msgtype == MotorMessage.FEEDBACK:
-                print "Got feedback", msg.motor, msg.position, msg.velocity, msg.acceleration
+                self._feedback[self.motors[msg.motor-1]] = msg
             return True
+        
+        if len(self._feedback) == len(self.motors):
+            pubmsg = JointState()
+            #put all joints into same joint state message
+            for name in self.motors:
+                msg = self._feedback[name]
+                pubmsg.name.append(name)
+                pubmsg.position.append(-(2.0*math.pi) * msg.position / STEPS_PER_REVOLUTION)
+                pubmsg.velocity.append(-(2.0*math.pi) * msg.velocity / STEPS_PER_REVOLUTION)
+                self._pub.publish(pubmsg)
+            self._feedback = dict()
         return False
     
     def writeOnce(self):
