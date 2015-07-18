@@ -155,7 +155,7 @@ if __name__ == '__main__':
     mi = MotorInterface()
     jn = JointNudger(mi)
     
-    rospy.Subscriber('/popsicle_arm/nudge_joint/', NudgeJoint, jn.subscriberCallback)
+    rospy.Subscriber('/popsicle_arm/nudge_joint', NudgeJoint, jn.subscriberCallback)
     
     rate = rospy.Rate(100) #Hz
     try:
