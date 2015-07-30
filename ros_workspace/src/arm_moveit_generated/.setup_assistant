@@ -1,0 +1,8 @@
+moveit_setup_assistant_config:
+  URDF:
+    package: popsicle_arm
+    relative_path: urdf/popsicle_bot.urdf
+  SRDF:
+    relative_path: config/popsicle_bot.srdf
+  CONFIG:
+    generated_timestamp: 1437580907

@@ -28,9 +28,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
       </geometry>
       <origin xyz="0.1 -0.14 0.03"/>
       <material name="black">
-        <color rgba="0.25 0.25 0.25 1"/>
+        <color rgba="0.15 0.15 0.15 1"/>
       </material>
     </visual>
+    <collision>
+      <geometry>
+        <box size="0.2 0.28 0.06"/>
+      </geometry>
+      <origin xyz="0.1 -0.14 0.03"/>
+    </collision>
   </link>
   <joint name="base_to_main_stand" type="fixed">
     <parent link="base_link"/>
@@ -47,7 +53,35 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         <color rgba="0.9 0.9 0.5 1"/>
       </material>
     </visual>
+    <collision>
+      <geometry>
+        <box size="0.002 0.009 0.11"/>
+      </geometry>
+      <origin xyz="0 0 0.055"/>
+    </collision>
   </link>
+  <link name="virtual_main_stop">
+    <visual>
+      <geometry>
+        <box size="0.009 0.009 0.11"/>
+      </geometry>
+      <origin xyz="0.009 0.009 0.055"/>
+      <material name="virtual_stop">
+        <color rgba="0.5 0.5 0.0 0.5"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="0.002 0.009 0.11"/>
+      </geometry>
+      <origin xyz="0 0 0.055"/>
+    </collision>
+  </link>
+  <joint name="main_stand_to_virtual_main_stop" type="fixed">
+    <parent link="main_stand"/>
+    <child link="virtual_main_stop"/>
+    <origin xyz="0 0.018 0"/>
+  </joint>
   <joint name="main_stand_to_motor_1" type="fixed">
     <parent link="main_stand"/>
     <child link="motor_1"/>
@@ -77,9 +111,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
       </geometry>
       <origin xyz="0.0 -0.009 0"/>
       <material name="black">
-        <color rgba="0.25 0.25 0.25 1"/>
+        <color rgba="0.15 0.15 0.15 1"/>
       </material>
     </visual>
+    <collision>
+      <geometry>
+        <box size="0.0027 0.038 0.023"/>
+      </geometry>
+      <origin xyz="0.0 -0.009 0"/>
+    </collision>
   </link>
   <joint name="plastic_1_to_m1_arm" type="fixed">
     <parent link="plastic_1"/>
@@ -96,6 +136,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         <color rgba="0.9 0.9 0.5 1"/>
       </material>
     </visual>
+    <collision>
+      <geometry>
+        <box size="0.002 0.009 0.115"/>
+      </geometry>
+      <origin xyz="0 0 0.0575"/>
+    </collision>
   </link>
   <joint name="m1_arm_to_motor_2" type="fixed">
     <parent link="m1_arm"/>
@@ -126,9 +172,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
       </geometry>
       <origin xyz="0.0 -0.009 0"/>
       <material name="black">
-        <color rgba="0.25 0.25 0.25 1"/>
+        <color rgba="0.15 0.15 0.15 1"/>
       </material>
     </visual>
+    <collision>
+      <geometry>
+        <box size="0.0027 0.038 0.023"/>
+      </geometry>
+      <origin xyz="0.0 -0.009 0"/>
+    </collision>
   </link>
   <joint name="plastic_2_to_m2_arm" type="fixed">
     <parent link="plastic_2"/>
@@ -145,8 +197,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         <color rgba="0.9 0.9 0.5 1"/>
       </material>
     </visual>
+    <collision>
+      <geometry>
+        <box size="0.002 0.009 0.115"/>
+      </geometry>
+      <origin xyz="0 0 0.0575"/>
+    </collision>
   </link>
-  <joint name="m2_arm_to_end" type="fixed">
+  <joint name="m2_arm_to_end" type="continuous">
     <parent link="m2_arm"/>
     <child link="end"/>
     <origin xyz="0 0 0.115"/>

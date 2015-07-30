@@ -19,6 +19,7 @@
 import rospy
 from sensor_msgs.msg import JointState
 from popsicle_arm.msg import NudgeJoint
+from popsicle_arm.msg import JointTarget
 import re
 import serial #pyserial
 import traceback
@@ -27,7 +28,7 @@ import Queue
 import math
 
 
-STEPS_PER_REVOLUTION=4076
+STEPS_PER_REVOLUTION=4096.0
 
 
 class MotorMessage(object):
@@ -35,6 +36,7 @@ class MotorMessage(object):
     FEEDBACK = 'F'
     MOVE_RELATIVE = 'R'
     MOVE_ABSOLUTE = 'A'
+    MOVE_VELOCITY = 'T'
     _feedback_re = re.compile("^(?P<motor>[0-9])F(?P<position>([-+])?[0-9]+),(?P<velocity>([-+])?[0-9]+),(?P<acceleration>([-+])?[0-9]+)$")
     
     def __init__(self, raw, motor, msgtype, **msgparams):
@@ -87,6 +89,18 @@ class MotorMessage(object):
                 acceleration=acceleration)
         return cls(raw, motor, cls.MOVE_RELATIVE, position=position, 
                 velocity=velocity, acceleration=acceleration)
+    
+    @classmethod
+    def moveVelocity(cls, motor, velocity, acceleration):
+        """Tell the motor to move up to a target velocity"""
+        motor = int(motor)
+        velocity = int(velocity)
+        acceleration = int(acceleration)
+        raw = "{motor}T{velocity},{acceleration}\n".format(
+                motor=motor, velocity=velocity,
+                acceleration=acceleration)
+        return cls(raw, motor, cls.MOVE_VELOCITY, velocity=velocity, 
+                acceleration=acceleration)
 
 
 class MotorInterface(object):
@@ -140,10 +154,14 @@ class MotorInterface(object):
     def moveAbsolute(self, motor, position, velocity, acceleration):
         msg = MotorMessage.moveAbsolute(motor, position, velocity, acceleration)
         self._write_Q.put(msg)
+    
+    def moveVelocity(self, motor, velocity, acceleration):
+        msg = MotorMessage.moveVelocity(motor, velocity, acceleration)
+        self._write_Q.put(msg)
 
 
 class JointNudger(object):
-    VELOCITY = 100
+    VELOCITY = 300
     ACCELERATION = 200
     
     def __init__(self, motor_interface):
@@ -159,25 +177,42 @@ class JointNudger(object):
                 self.VELOCITY, self.ACCELERATION)
 
 
+class JointTargetMover(object):
+    """Class that moves motors based on target speeds and accelerations"""
+    def __init__(self, motor_interface):
+        self._mi = motor_interface
+        self._motors = {'motor_1_to_plastic_1': 1,
+                'motor_2_to_plastic_2': 2}
+    
+    def subscriberCallback(self, msg):
+        #convert radians to steps
+        for joint_name, position, velocity, acceleration in zip(msg.joint_names, 
+                msg.positions, msg.velocities, msg.accelerations):
+            position = STEPS_PER_REVOLUTION * position / (2*math.pi)
+            velocity = STEPS_PER_REVOLUTION * velocity / (2*math.pi)
+            acceleration = STEPS_PER_REVOLUTION * acceleration / (2*math.pi)
+            self._mi.moveAbsolute(self._motors[joint_name], position,
+                velocity, acceleration)
+
+
 
 if __name__ == '__main__':
     import code
     rospy.init_node('popsicle_arm_node')
     mi = MotorInterface()
     jn = JointNudger(mi)
+    jtm = JointTargetMover(mi)
     
     rospy.Subscriber('/popsicle_arm/nudge_joint', NudgeJoint, jn.subscriberCallback)
+    rospy.Subscriber('/popsicle_arm/joint_target', JointTarget, jtm.subscriberCallback)
     
     rate = rospy.Rate(100) #Hz
     try:
         while not rospy.is_shutdown():
-            #TODO do joint state publishing,
-            #and NudgeJoint support
             while mi.readOnce():
                 pass
             while mi.writeOnce():
                 pass
-            #code.interact(local=locals())
             rate.sleep()
     except rospy.ROSInterruptException:
         pass

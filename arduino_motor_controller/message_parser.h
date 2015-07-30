@@ -32,14 +32,22 @@ class MessageParser
     
     protected:
     
+    //moves to an absolute position (0,0) is where motor was at arduino boot
     struct MoveAbsoluteMsg{
         int16_t position;
         int16_t speed;
         int16_t acceleration;
     };
     
+    //Moves a number of steps from the current position
     struct MoveRelativeMsg{
         int16_t steps;
+        int16_t speed;
+        int16_t acceleration;
+    };
+    
+    //Moves at a set speed
+    struct MoveVelocityMsg{
         int16_t speed;
         int16_t acceleration;
     };
@@ -55,7 +63,8 @@ class MessageParser
     typedef enum {
         MOVE_ABSOLUTE = 2,
         MOVE_RELATIVE = 3,
-        MOTOR_FEEDBACK = 4
+        MOTOR_FEEDBACK = 4,
+        MOVE_VELOCITY = 5
     }MessageType;
     
     typedef enum {
@@ -70,6 +79,7 @@ class MessageParser
         {
             MoveAbsoluteMsg move_absolute;
             MoveRelativeMsg move_relative;
+            MoveVelocityMsg move_velocity;
             MotorStateMsg motor_state;
         };
     } Message;

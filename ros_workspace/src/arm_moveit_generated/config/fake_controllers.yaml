@@ -1,0 +1,9 @@
+controller_list:
+  - name: fake_arm_group_controller
+    joints:
+      - motor_1_to_plastic_1
+      - motor_2_to_plastic_2
+      - m2_arm_to_end
+  - name: fake_end_controller
+    joints:
+      - m2_arm_to_end

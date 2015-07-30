@@ -23,7 +23,13 @@ AccelStepper stepper_1(AccelStepper::HALF4WIRE, 8,10,9,11);
 AccelStepper stepper_2(AccelStepper::HALF4WIRE, 2,4,3,5);
 MessageParser messager;
 
-const unsigned int STEPS_PER_REVOLUTION = 4076;
+//const unsigned int STEPS_PER_REVOLUTION = 4076;
+typedef enum {
+    POSITION_MODE,
+    SPEED_MODE,
+} RunMode;
+
+RunMode current_mode = POSITION_MODE;
 
 void setup()
 {
@@ -32,17 +38,29 @@ void setup()
 
 void applyMessage(AccelStepper &motor, const MessageParser::Message &msg)
 {
+    float vel;
     switch(msg.type)
     {
         case MessageParser::MOVE_RELATIVE:
             motor.setMaxSpeed(msg.move_relative.speed);
             motor.setAcceleration(msg.move_relative.acceleration);
             motor.move(msg.move_relative.steps);
+            current_mode = POSITION_MODE;
             break;
         case MessageParser::MOVE_ABSOLUTE:
             motor.setMaxSpeed(msg.move_absolute.speed);
             motor.setAcceleration(msg.move_absolute.acceleration);
             motor.moveTo(msg.move_absolute.position);
+            current_mode = POSITION_MODE;
+            break;
+        case MessageParser::MOVE_VELOCITY:
+            vel = fabs(msg.move_velocity.speed);
+            motor.setMaxSpeed(vel);
+            motor.setSpeed(vel);
+            motor.setAcceleration(msg.move_velocity.acceleration);
+            //Move max 250 steps without a new velocity command
+            motor.move(msg.move_velocity.speed > 0 ? 250 : -250);
+            current_mode = SPEED_MODE;
             break;
         default:
             Serial.println("Unknown message");
@@ -64,8 +82,16 @@ void loop()
             applyMessage(stepper_2, msg);
         }
     }
-    stepper_1.run();
-    stepper_2.run();
+    if (current_mode == POSITION_MODE)
+    {
+        stepper_1.run();
+        stepper_2.run();
+    }
+    else if (current_mode == SPEED_MODE)
+    {
+        stepper_1.run();
+        stepper_2.run();
+    }
 
     static unsigned long last_feedback_time = 0;
     static int m1_last_speed = 0;

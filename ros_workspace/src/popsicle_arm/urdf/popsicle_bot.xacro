@@ -43,15 +43,27 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             <color rgba="0.5 0.5 0.5 1"/>
         </material>
     </xacro:macro>
-
+    <xacro:macro name="material_virtual">
+        <material name="virtual_stop">
+            <color rgba="0.5 0.5 0.0 0.5"/>
+        </material>
+    </xacro:macro>
+    
     <link name="base_link">
         <visual>
             <geometry>
                 <box size="${base_size_x} ${base_size_y} ${base_size_z}"/>
             </geometry>
             <origin xyz="${base_size_x/2.0} ${-base_size_y/2.0} ${base_size_z/2.0}"/>
-        <xacro:material_black/>
+            <xacro:material_black/>
         </visual>
+        <collision>
+            <geometry>
+                <box size="${base_size_x} ${base_size_y} ${base_size_z}"/>
+            </geometry>
+            <origin xyz="${base_size_x/2.0} ${-base_size_y/2.0} ${base_size_z/2.0}"/>
+        </collision>
+    
     </link>
     
     <joint name="base_to_main_stand" type="fixed">
@@ -66,9 +78,37 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 <box size="${stick_width_small} ${stick_width} ${main_stand_height}"/>
             </geometry>
             <origin xyz="0 0 ${main_stand_height/2.0}"/>
-        <xacro:material_popsicle/>
+            <xacro:material_popsicle/>
         </visual>
+        <collision>
+            <geometry>
+                <box size="${stick_width_small} ${stick_width} ${main_stand_height}"/>
+            </geometry>
+            <origin xyz="0 0 ${main_stand_height/2.0}"/>
+        </collision>
     </link>
+
+    <link name="virtual_main_stop">
+        <visual>
+            <geometry>
+                <box size="${stick_width} ${stick_width} ${main_stand_height}"/>
+            </geometry>
+            <origin xyz="${stick_width} ${stick_width} ${main_stand_height/2.0}"/>
+            <xacro:material_virtual/>
+        </visual>
+        <collision>
+            <geometry>
+                <box size="${stick_width_small} ${stick_width} ${main_stand_height}"/>
+            </geometry>
+            <origin xyz="0 0 ${main_stand_height/2.0}"/>
+        </collision>
+    </link>
+    
+    <joint name="main_stand_to_virtual_main_stop" type="fixed">
+        <parent link="main_stand"/>
+        <child link="virtual_main_stop"/>
+        <origin xyz="0 ${stick_width*2} 0"/>
+    </joint>
 
     <joint name="main_stand_to_motor_1" type="fixed">
         <parent link="main_stand"/>
@@ -103,8 +143,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 <box size="${plastic_x} ${plastic_y} ${plastic_z}"/>
             </geometry>
             <origin xyz="0.0 ${-plastic_y/2.0+0.01} 0"/>
-        <xacro:material_black/>
+            <xacro:material_black/>
         </visual>
+        <collision>
+            <geometry>
+                <box size="${plastic_x} ${plastic_y} ${plastic_z}"/>
+            </geometry>
+            <origin xyz="0.0 ${-plastic_y/2.0+0.01} 0"/>
+        </collision>
     </link>
     
     <joint name="plastic_1_to_m1_arm" type="fixed">
@@ -121,6 +167,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             <origin xyz="0 0 ${stick_length/2.0}"/>
             <xacro:material_popsicle/>
         </visual>
+        <collision>
+            <geometry>
+                <box size="${stick_width_small} ${stick_width} ${stick_length}"/>
+            </geometry>
+            <origin xyz="0 0 ${stick_length/2.0}"/>
+        </collision>
     </link>
     
     <joint name="m1_arm_to_motor_2" type="fixed">
@@ -152,8 +204,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 <box size="${plastic_x} ${plastic_y} ${plastic_z}"/>
             </geometry>
             <origin xyz="0.0 ${-plastic_y/2.0+0.01} 0"/>
-        <xacro:material_black/>
+            <xacro:material_black/>
         </visual>
+        <collision>
+            <geometry>
+                <box size="${plastic_x} ${plastic_y} ${plastic_z}"/>
+            </geometry>
+            <origin xyz="0.0 ${-plastic_y/2.0+0.01} 0"/>
+        </collision>
     </link>
     
     <joint name="plastic_2_to_m2_arm" type="fixed">
@@ -170,9 +228,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             <origin xyz="0 0 ${stick_length/2.0}"/>
             <xacro:material_popsicle/>
         </visual>
+        <collision>
+            <geometry>
+                <box size="${stick_width_small} ${stick_width} ${stick_length}"/>
+            </geometry>
+            <origin xyz="0 0 ${stick_length/2.0}"/>
+        </collision>
     </link>
 
-    <joint name="m2_arm_to_end" type="fixed">
+    <joint name="m2_arm_to_end" type="continuous">
         <parent link="m2_arm"/>
         <child link="end"/>
         <origin xyz="0 0 ${stick_length}"/>

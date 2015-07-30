@@ -84,10 +84,6 @@ bool MessageParser::parseMsg(Message &msg)
             msg.move_absolute.position = parseInt(idx);
             msg.move_absolute.speed = parseInt(idx);
             msg.move_absolute.acceleration = parseInt(idx);
-            Serial.print("Got move absolute");
-            Serial.print(msg.move_absolute.position); Serial.print(',');
-            Serial.print(msg.move_absolute.speed); Serial.print(',');
-            Serial.println(msg.move_absolute.acceleration);
             break;
         case 'R':
             msg.type = MOVE_RELATIVE;
@@ -95,10 +91,12 @@ bool MessageParser::parseMsg(Message &msg)
             msg.move_relative.steps = parseInt(idx);
             msg.move_relative.speed = parseInt(idx);
             msg.move_relative.acceleration = parseInt(idx);
-            Serial.print("Got move relative");
-            Serial.print(msg.move_relative.steps); Serial.print(',');
-            Serial.print(msg.move_relative.speed); Serial.print(',');
-            Serial.println(msg.move_relative.acceleration);
+            break;
+        case 'T':
+            msg.type = MOVE_VELOCITY;
+            idx++;
+            msg.move_velocity.speed = parseInt(idx);
+            msg.move_velocity.acceleration = parseInt(idx);
             break;
         case 'F':
             msg.type = MOTOR_FEEDBACK;
