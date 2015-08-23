@@ -188,8 +188,8 @@ class JointTargetMover(object):
         #convert radians to steps
         for joint_name, position, velocity, acceleration in zip(msg.joint_names, 
                 msg.positions, msg.velocities, msg.accelerations):
-            position = STEPS_PER_REVOLUTION * position / (2*math.pi)
-            velocity = STEPS_PER_REVOLUTION * velocity / (2*math.pi)
+            position = -1.0 * STEPS_PER_REVOLUTION * position / (2*math.pi)
+            velocity = -1.0 * STEPS_PER_REVOLUTION * velocity / (2*math.pi)
             acceleration = STEPS_PER_REVOLUTION * acceleration / (2*math.pi)
             self._mi.moveAbsolute(self._motors[joint_name], position,
                 velocity, acceleration)

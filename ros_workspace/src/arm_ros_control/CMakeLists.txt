@@ -5,10 +5,13 @@ project(arm_ros_control)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  hardware_interface
   roscpp
   std_msgs
   trajectory_msgs
+  sensor_msgs
+  hardware_interface
+  controller_manager
+  popsicle_arm
 )
 
 ## System dependencies are found with CMake's conventions
@@ -81,7 +84,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
+    INCLUDE_DIRS include
 #  LIBRARIES arm_ros_control
 #  CATKIN_DEPENDS ros_control roscpp std_msgs trajectory_msgs
 #  DEPENDS system_lib
@@ -95,6 +98,7 @@ catkin_package(
 ## Your package locations should be listed before other locations
 # include_directories(include)
 include_directories(
+    include
   ${catkin_INCLUDE_DIRS}
 )
 
@@ -104,16 +108,19 @@ include_directories(
 # )
 
 ## Declare a cpp executable
-# add_executable(arm_ros_control_node src/arm_ros_control_node.cpp)
+add_executable(arm_controller_node
+    src/arm_controller_node.cpp
+    src/position_hi.cpp
+    )
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
 # add_dependencies(arm_ros_control_node arm_ros_control_generate_messages_cpp)
 
 ## Specify libraries to link a library or executable target against
-# target_link_libraries(arm_ros_control_node
-#   ${catkin_LIBRARIES}
-# )
+target_link_libraries(arm_controller_node
+   ${catkin_LIBRARIES}
+)
 
 #############
 ## Install ##

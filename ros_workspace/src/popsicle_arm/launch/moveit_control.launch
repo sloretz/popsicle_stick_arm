@@ -1,10 +1,27 @@
 <launch>
     <param name="robot_description" command="$(find xacro)/xacro.py $(find popsicle_arm)/urdf/popsicle_bot.xacro" />
-    <node name="popsicle_arm_controller" pkg="popsicle_arm" type="popsicle_arm_node.py" />
     
+    <!-- The node that actually talks to hardware -->
+    <node name="popsicle_arm_controller" pkg="popsicle_arm" type="popsicle_arm_node.py" output="screen" />
+
+    <!-- TF and joint state publishers -->
     <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
         <rosparam param="source_list">["/popsicle_arm/joint_state"]</rosparam>
     </node>
     <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" />
+    
+    <!-- Launch ros_control hardware interface
+    -->
+    <node name="arm_hardware_interface" pkg="arm_ros_control" type="arm_controller_node" output="screen" launch-prefix=""/>
+
+    <!-- Puts yaml into parameter server -->
+    <rosparam file="$(find arm_ros_control)/config/position_joint_trajectory.yaml" command="load"/>
+    <!-- launch controller manager with plugin described in parameter server -->
+    <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false"
+    output="screen" args="arm_controller" />
+    
+    <!-- Start moveit -->
+    <include file="$(find arm_moveit_generated)/launch/move_group.launch"/>
+    
     <node name="rviz" pkg="rviz" type="rviz" args="-d $(find popsicle_arm)/configs/view_arm.rviz" required="true" />
 </launch>

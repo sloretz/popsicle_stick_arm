@@ -1,0 +1,9 @@
+controller_list:
+  - name: arm_controller
+    action_ns: follow_joint_trajectory
+    type: FollowJointTrajectory
+    default: true
+    joints:
+      - m2_arm_to_end
+      - motor_1_to_plastic_1
+      - motor_2_to_plastic_2
