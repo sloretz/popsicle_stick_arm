@@ -15,7 +15,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <ros/ros.h>
-#include "arm_ros_control/position_hi.hpp"
+#include "popsicle_arm/position_hi.hpp"
 #include "popsicle_arm/JointTarget.h"
 #include <sensor_msgs/JointState.h>
 #include <controller_manager/controller_manager.h>
@@ -51,15 +51,13 @@ class ArmUpdater
         
         void update_arm(const ros::TimerEvent &e)
         {
-            ROS_INFO("updating arm");
+            //ROS_INFO("updating arm");
             controller_manager_->update(ros::Time::now(), e.current_real - e.last_real);
-            ROS_INFO("after cm call");
             
             //TODO just use joint state msg for target msg
             popsicle_arm::JointTarget out_msg;
             out_msg.joint_names.push_back(joint_1);
             out_msg.positions.push_back(arm_hw_intf.get_command(0));
-            ROS_INFO("After getting first command");
             out_msg.velocities.push_back(VELOCITY);
             out_msg.accelerations.push_back(ACCELERATION);
             out_msg.joint_names.push_back(joint_2);
@@ -67,12 +65,12 @@ class ArmUpdater
             out_msg.velocities.push_back(VELOCITY);
             out_msg.accelerations.push_back(ACCELERATION);
             command_pub_.publish(out_msg);
-            ROS_INFO("After publishing commands"); 
+            //ROS_INFO("After publishing commands"); 
         }
         
         void joint_state_callback(const sensor_msgs::JointState::ConstPtr& msg)
         {
-            ROS_INFO("Got state");
+            //ROS_INFO("Got state");
             //Populate the joint values
             for (int j = 0; j < msg->name.size(); j++)
             {
@@ -95,7 +93,7 @@ class ArmUpdater
                     ROS_WARN("Unknown joint name %s", msg->name[j].c_str());
                 }
             }
-            ROS_INFO("Finished processing state");
+            //ROS_INFO("Finished processing state");
         }
 };
 

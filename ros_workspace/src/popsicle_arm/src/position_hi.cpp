@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "arm_ros_control/position_hi.hpp"
+#include "popsicle_arm/position_hi.hpp"
 
 
 PopsicleArmPositionHI::PopsicleArmPositionHI()

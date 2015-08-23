@@ -9,6 +9,9 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
   sensor_msgs
+  trajectory_msgs
+  hardware_interface
+  controller_manager
   message_generation
 )
 
@@ -97,25 +100,21 @@ catkin_package(
 ## Your package locations should be listed before other locations
 # include_directories(include)
 include_directories(
-  ${catkin_INCLUDE_DIRS}
+    include
+    ${catkin_INCLUDE_DIRS}
 )
 
-## Declare a cpp library
-# add_library(popsicle_arm
-#   src/${PROJECT_NAME}/popsicle_arm.cpp
-# )
+add_executable(arm_ros_control_hw_intf_node
+    src/ros_control_hw_intf_node.cpp
+    src/position_hi.cpp
+    )
 
-## Declare a cpp executable
-# add_executable(popsicle_arm_node src/popsicle_arm_node.cpp)
+add_dependencies(arm_ros_control_hw_intf_node popsicle_arm_generate_messages_cpp)
 
-## Add cmake target dependencies of the executable/library
-## as an example, message headers may need to be generated before nodes
-# add_dependencies(popsicle_arm_node popsicle_arm_generate_messages_cpp)
+target_link_libraries(arm_ros_control_hw_intf_node
+   ${catkin_LIBRARIES}
+)
 
-## Specify libraries to link a library or executable target against
-# target_link_libraries(popsicle_arm_node
-#   ${catkin_LIBRARIES}
-# )
 
 #############
 ## Install ##

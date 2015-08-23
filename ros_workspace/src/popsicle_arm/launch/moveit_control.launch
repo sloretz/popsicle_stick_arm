@@ -12,10 +12,10 @@
     
     <!-- Launch ros_control hardware interface
     -->
-    <node name="arm_hardware_interface" pkg="arm_ros_control" type="arm_controller_node" output="screen" launch-prefix=""/>
+    <node name="arm_ros_control_interface" pkg="popsicle_arm" type="arm_ros_control_hw_intf_node" output="screen" launch-prefix=""/>
 
     <!-- Puts yaml into parameter server -->
-    <rosparam file="$(find arm_ros_control)/config/position_joint_trajectory.yaml" command="load"/>
+    <rosparam file="$(find popsicle_arm)/config/position_joint_trajectory.yaml" command="load"/>
     <!-- launch controller manager with plugin described in parameter server -->
     <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false"
     output="screen" args="arm_controller" />
@@ -23,5 +23,5 @@
     <!-- Start moveit -->
     <include file="$(find arm_moveit_generated)/launch/move_group.launch"/>
     
-    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find popsicle_arm)/configs/view_arm.rviz" required="true" />
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find popsicle_arm)/config/view_arm.rviz" required="true" />
 </launch>
