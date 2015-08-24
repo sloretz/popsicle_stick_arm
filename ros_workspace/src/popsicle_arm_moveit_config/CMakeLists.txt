@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(arm_moveit_generated)
+project(popsicle_arm_moveit_config)
 
 find_package(catkin REQUIRED)
 

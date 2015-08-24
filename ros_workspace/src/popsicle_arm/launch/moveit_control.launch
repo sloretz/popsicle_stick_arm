@@ -21,7 +21,7 @@
     output="screen" args="arm_controller" />
     
     <!-- Start moveit -->
-    <include file="$(find arm_moveit_generated)/launch/move_group.launch"/>
+    <include file="$(find popsicle_arm_moveit_config)/launch/move_group.launch"/>
     
     <node name="rviz" pkg="rviz" type="rviz" args="-d $(find popsicle_arm)/config/view_arm.rviz" required="true" />
 </launch>

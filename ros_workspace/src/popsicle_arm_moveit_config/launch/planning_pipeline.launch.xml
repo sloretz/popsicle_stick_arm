@@ -5,6 +5,6 @@
 
   <arg name="pipeline" default="ompl" />
 
-  <include file="$(find arm_moveit_generated)/launch/$(arg pipeline)_planning_pipeline.launch.xml" />
+  <include file="$(find popsicle_arm_moveit_config)/launch/$(arg pipeline)_planning_pipeline.launch.xml" />
 
 </launch>
