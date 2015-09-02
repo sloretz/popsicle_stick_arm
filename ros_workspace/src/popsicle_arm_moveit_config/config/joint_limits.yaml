@@ -8,12 +8,12 @@ joint_limits:
     has_acceleration_limits: false
     max_acceleration: 0
   motor_1_to_plastic_1:
-    has_velocity_limits: false
-    max_velocity: 0
-    has_acceleration_limits: false
-    max_acceleration: 0
+    has_velocity_limits: true
+    max_velocity: 0.50
+    has_acceleration_limits: true
+    max_acceleration: 0.50
   motor_2_to_plastic_2:
-    has_velocity_limits: false
-    max_velocity: 0
-    has_acceleration_limits: false
-    max_acceleration: 0
+    has_velocity_limits: true
+    max_velocity: 0.50
+    has_acceleration_limits: true
+    max_acceleration: 0.50

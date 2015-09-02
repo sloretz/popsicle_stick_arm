@@ -1,0 +1,5 @@
+<launch>
+    <node name="path_executer" pkg="popsicle_arm" type="path_executer.py" output="screen">
+    </node>
+
+</launch>

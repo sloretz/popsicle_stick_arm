@@ -1,9 +1,14 @@
 <launch>
+    <!-- If true then fake virtual motors will be used -->
+    <arg name="fake" default="false" />
+    
     <param name="robot_description" command="$(find xacro)/xacro.py $(find popsicle_arm)/urdf/popsicle_bot.xacro" />
     
     <!-- The node that actually talks to hardware -->
-    <node name="popsicle_arm_controller" pkg="popsicle_arm" type="popsicle_arm_node.py" output="screen" />
-
+    <node name="popsicle_arm_controller" pkg="popsicle_arm" type="popsicle_arm_node.py" output="screen">
+        <param name="fake" value="$(arg fake)"/>
+    </node>
+    
     <!-- TF and joint state publishers -->
     <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
         <rosparam param="source_list">["/popsicle_arm/joint_state"]</rosparam>
@@ -13,15 +18,18 @@
     <!-- Launch ros_control hardware interface
     -->
     <node name="arm_ros_control_interface" pkg="popsicle_arm" type="arm_ros_control_hw_intf_node" output="screen" launch-prefix=""/>
-
+    
     <!-- Puts yaml into parameter server -->
     <rosparam file="$(find popsicle_arm)/config/position_joint_trajectory.yaml" command="load"/>
     <!-- launch controller manager with plugin described in parameter server -->
     <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false"
-    output="screen" args="arm_controller" />
+    output="screen" args="arm_controller --shutdown-timeout 1" />
     
     <!-- Start moveit -->
     <include file="$(find popsicle_arm_moveit_config)/launch/move_group.launch"/>
+    
+    <!-- Start drawing path executer -->
+    <include file="$(find popsicle_arm)/launch/path_executer.launch"/>
     
     <node name="rviz" pkg="rviz" type="rviz" args="-d $(find popsicle_arm)/config/view_arm.rviz" required="true" />
 </launch>

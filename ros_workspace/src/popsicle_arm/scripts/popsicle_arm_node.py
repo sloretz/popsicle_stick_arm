@@ -20,7 +20,8 @@ import rospy
 from sensor_msgs.msg import JointState
 from popsicle_arm.msg import NudgeJoint
 from popsicle_arm.msg import JointTarget
-import re
+from popsicle_arm.fake_serial_motors import FakeMotorInterface
+from popsicle_arm.motor_message import MotorMessage
 import serial #pyserial
 import traceback
 import select
@@ -31,89 +32,27 @@ import math
 STEPS_PER_REVOLUTION=4096.0
 
 
-class MotorMessage(object):
-    TERMINATOR = '\n'
-    FEEDBACK = 'F'
-    MOVE_RELATIVE = 'R'
-    MOVE_ABSOLUTE = 'A'
-    MOVE_VELOCITY = 'T'
-    _feedback_re = re.compile("^(?P<motor>[0-9])F(?P<position>([-+])?[0-9]+),(?P<velocity>([-+])?[0-9]+),(?P<acceleration>([-+])?[0-9]+)$")
-    
-    def __init__(self, raw, motor, msgtype, **msgparams):
-        #Put message params directly onto object
-        for k,v in msgparams.items():
-            setattr(self, k, v)
-        
-        self.motor = motor
-        self.msgtype = msgtype
-        self.raw = raw
-    
-    @classmethod
-    def parse(cls, raw):
-        #Should only be feedback message
-        #1F123,456,789 motorFposition,vel,accel
-        obj = re.match(cls._feedback_re, raw)
-        if obj:
-            return cls(raw,
-                    int(obj.group('motor')),
-                    cls.FEEDBACK,
-                    position=int(obj.group('position')),
-                    velocity=int(obj.group('velocity')),
-                    acceleration=int(obj.group('acceleration'))
-                    )
-        return None
-    
-    def __str__(self):
-        return self.raw
-    
-    @classmethod
-    def moveRelative(cls, motor, steps, velocity, acceleration):
-        motor = int(motor)
-        steps = int(steps)
-        velocity = int(velocity)
-        acceleration = int(acceleration)
-        raw = "{motor}R{steps},{velocity},{acceleration}\n".format(
-                motor=motor, steps=steps, velocity=velocity,
-                acceleration=acceleration)
-        return cls(raw, motor, cls.MOVE_RELATIVE, steps=steps,
-                velocity=velocity, acceleration=acceleration)
-    
-    @classmethod
-    def moveAbsolute(cls, motor, position, velocity, acceleration):
-        motor = int(motor)
-        position = int(position)
-        velocity = int(velocity)
-        acceleration = int(acceleration)
-        raw = "{motor}A{position},{velocity},{acceleration}\n".format(
-                motor=motor, position=position, velocity=velocity,
-                acceleration=acceleration)
-        return cls(raw, motor, cls.MOVE_RELATIVE, position=position, 
-                velocity=velocity, acceleration=acceleration)
-    
-    @classmethod
-    def moveVelocity(cls, motor, velocity, acceleration):
-        """Tell the motor to move up to a target velocity"""
-        motor = int(motor)
-        velocity = int(velocity)
-        acceleration = int(acceleration)
-        raw = "{motor}T{velocity},{acceleration}\n".format(
-                motor=motor, velocity=velocity,
-                acceleration=acceleration)
-        return cls(raw, motor, cls.MOVE_VELOCITY, velocity=velocity, 
-                acceleration=acceleration)
-
-
 class MotorInterface(object):
     def __init__(self):
         self._pub = rospy.Publisher('/popsicle_arm/joint_state', JointState, queue_size=10)
-        self._dev = serial.Serial(port='/dev/ttyUSB0', baudrate=115200,
-                timeout=0, writeTimeout=0)
+        if rospy.has_param("~fake") and rospy.get_param("~fake"):
+            self._fake = True
+            self._dev = FakeMotorInterface(2)
+        else:
+            self._fake = False
+            self._dev = serial.Serial(port='/dev/ttyUSB0', baudrate=115200, timeout=0, writeTimeout=0)
         self.motors = ['motor_1_to_plastic_1', 'motor_2_to_plastic_2']
         self._write_Q = Queue.Queue()
         self._feedback = dict()
+
+    def update(self):
+        while mi.readOnce():
+            pass
+        while mi.writeOnce():
+            pass
     
     def readOnce(self):
-        #Get feedback from the motors, or send a motor command?
+        #Get feedback from the motors
         try:
             msg = MotorMessage.parse(self._dev.readline())
         except serial.SerialTimeoutException:
@@ -122,24 +61,26 @@ class MotorInterface(object):
         if msg:
             if msg.msgtype == MotorMessage.FEEDBACK:
                 self._feedback[self.motors[msg.motor-1]] = msg
-            return True
         
-        if len(self._feedback) == len(self.motors):
-            pubmsg = JointState()
-            #put all joints into same joint state message
-            for name in self.motors:
-                msg = self._feedback[name]
-                pubmsg.name.append(name)
-                pubmsg.position.append(-(2.0*math.pi) * msg.position / STEPS_PER_REVOLUTION)
-                pubmsg.velocity.append(-(2.0*math.pi) * msg.velocity / STEPS_PER_REVOLUTION)
-                self._pub.publish(pubmsg)
-            self._feedback = dict()
+            if len(self._feedback) == len(self.motors):
+                pubmsg = JointState()
+                #put all joints into same joint state message
+                for name in self.motors:
+                    msg = self._feedback[name]
+                    pubmsg.name.append(name)
+                    pubmsg.position.append(-(2.0*math.pi) * msg.position / STEPS_PER_REVOLUTION)
+                    pubmsg.velocity.append(-(2.0*math.pi) * msg.velocity / STEPS_PER_REVOLUTION)
+                    self._pub.publish(pubmsg)
+                self._feedback = dict()
+            return True
         return False
     
     def writeOnce(self):
         try:
             msg = self._write_Q.get_nowait()
-            self._dev.write(str(msg))
+            if not self._fake:
+                msg = str(msg)
+            self._dev.write(msg)
             return True
         except serial.SerialTimeoutException:
             pass
@@ -189,7 +130,7 @@ class JointTargetMover(object):
         for joint_name, position, velocity, acceleration in zip(msg.joint_names, 
                 msg.positions, msg.velocities, msg.accelerations):
             position = -1.0 * STEPS_PER_REVOLUTION * position / (2*math.pi)
-            velocity = -1.0 * STEPS_PER_REVOLUTION * velocity / (2*math.pi)
+            velocity = 1.0 * STEPS_PER_REVOLUTION * velocity / (2*math.pi)
             acceleration = STEPS_PER_REVOLUTION * acceleration / (2*math.pi)
             self._mi.moveAbsolute(self._motors[joint_name], position,
                 velocity, acceleration)
@@ -209,10 +150,7 @@ if __name__ == '__main__':
     rate = rospy.Rate(100) #Hz
     try:
         while not rospy.is_shutdown():
-            while mi.readOnce():
-                pass
-            while mi.writeOnce():
-                pass
+            mi.update()
             rate.sleep()
     except rospy.ROSInterruptException:
         pass
