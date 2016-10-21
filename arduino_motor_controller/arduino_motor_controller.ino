@@ -19,8 +19,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "AccelStepper.h"
 #include "message_parser.h"
 
-AccelStepper stepper_1(AccelStepper::HALF4WIRE, 8,10,9,11);
-AccelStepper stepper_2(AccelStepper::HALF4WIRE, 2,4,3,5);
+AccelStepper stepper_1(AccelStepper::HALF4WIRE, 9, 11, 10, 12); //D, B, C, A
+AccelStepper stepper_2(AccelStepper::HALF4WIRE, 7, 5, 6, 4); // A, C, B, D
 MessageParser messager;
 
 //const unsigned int STEPS_PER_REVOLUTION = 4076;
@@ -35,6 +35,9 @@ void setup()
 {
     Serial.begin(115200);
 }
+
+unsigned long last_command_time = 0;
+const unsigned long command_period = 100;
 
 void applyMessage(AccelStepper &motor, const MessageParser::Message &msg)
 {
@@ -58,14 +61,13 @@ void applyMessage(AccelStepper &motor, const MessageParser::Message &msg)
             motor.setMaxSpeed(vel);
             motor.setSpeed(vel);
             motor.setAcceleration(msg.move_velocity.acceleration);
-            //Move max 250 steps without a new velocity command
-            motor.move(msg.move_velocity.speed > 0 ? 250 : -250);
             current_mode = SPEED_MODE;
             break;
         default:
             Serial.println("Unknown message");
             break;
     }
+    last_command_time = millis();
 }
 
 void loop()
@@ -82,6 +84,7 @@ void loop()
             applyMessage(stepper_2, msg);
         }
     }
+
     if (current_mode == POSITION_MODE)
     {
         stepper_1.run();
@@ -89,8 +92,17 @@ void loop()
     }
     else if (current_mode == SPEED_MODE)
     {
-        stepper_1.run();
-        stepper_2.run();
+        if (last_command_time + command_period > millis())
+        {
+            stepper_1.runSpeed();
+            stepper_2.runSpeed();
+        }
+        else
+        {
+            //Only run if the command is recent
+            stepper_1.stop();
+            stepper_2.stop();
+        }
     }
 
     static unsigned long last_feedback_time = 0;
@@ -109,5 +121,8 @@ void loop()
         m1_last_speed = m1_new_speed;
         m2_last_speed = m2_new_speed;
         last_feedback_time = now;
+
+        //Serial.print("mode:");
+        //Serial.println(current_mode == POSITION_MODE ? "position" : "speed");
     }
 }

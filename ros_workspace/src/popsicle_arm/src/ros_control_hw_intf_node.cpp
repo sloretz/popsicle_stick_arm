@@ -22,8 +22,8 @@
 
 const std::string joint_1 = "motor_1_to_plastic_1";
 const std::string joint_2 = "motor_2_to_plastic_2";
-const double VELOCITY = 0.5; // rad/s
-const double ACCELERATION = 0.5;// rad/s^2
+const double VELOCITY = 0.8; // rad/s
+const double ACCELERATION = 1.0;// rad/s^2
 
 
 

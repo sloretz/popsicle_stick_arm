@@ -9,11 +9,11 @@ joint_limits:
     max_acceleration: 0
   motor_1_to_plastic_1:
     has_velocity_limits: true
-    max_velocity: 0.50
+    max_velocity: 0.8
     has_acceleration_limits: true
-    max_acceleration: 0.50
+    max_acceleration: 1.0
   motor_2_to_plastic_2:
     has_velocity_limits: true
-    max_velocity: 0.50
+    max_velocity: 0.8
     has_acceleration_limits: true
-    max_acceleration: 0.50
+    max_acceleration: 1.0

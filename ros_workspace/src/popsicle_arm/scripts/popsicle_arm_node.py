@@ -40,7 +40,7 @@ class MotorInterface(object):
             self._dev = FakeMotorInterface(2)
         else:
             self._fake = False
-            self._dev = serial.Serial(port='/dev/ttyUSB0', baudrate=115200, timeout=0, writeTimeout=0)
+            self._dev = serial.Serial(port='/dev/ttyUSB0', baudrate=115200, timeout=0)
         self.motors = ['motor_1_to_plastic_1', 'motor_2_to_plastic_2']
         self._write_Q = Queue.Queue()
         self._feedback = dict()
@@ -101,31 +101,23 @@ class MotorInterface(object):
         self._write_Q.put(msg)
 
 
-class JointNudger(object):
-    VELOCITY = 300
-    ACCELERATION = 200
-    
-    def __init__(self, motor_interface):
-        self._mi = motor_interface
-        self._motors = {'motor_1_to_plastic_1': 1,
-                'motor_2_to_plastic_2': 2}
-    
-    def subscriberCallback(self, msg):
-        #convert radians to steps
-        #and do a move relative
-        steps = STEPS_PER_REVOLUTION * msg.amount / (2*math.pi)
-        self._mi.moveRelative(self._motors[msg.joint_name], steps,
-                self.VELOCITY, self.ACCELERATION)
-
-
-class JointTargetMover(object):
+class JointMover(object):
     """Class that moves motors based on target speeds and accelerations"""
     def __init__(self, motor_interface):
         self._mi = motor_interface
         self._motors = {'motor_1_to_plastic_1': 1,
                 'motor_2_to_plastic_2': 2}
-    
-    def subscriberCallback(self, msg):
+
+    def onNudgeJoint(self, msg):
+        #convert radians to steps
+        #and do a move relative
+        VELOCITY = 300
+        ACCELERATION = 200
+        steps = STEPS_PER_REVOLUTION * msg.amount / (2*math.pi)
+        self._mi.moveRelative(self._motors[msg.joint_name], steps,
+                VELOCITY, ACCELERATION)
+
+    def onJointTarget(self, msg):
         #convert radians to steps
         for joint_name, position, velocity, acceleration in zip(msg.joint_names, 
                 msg.positions, msg.velocities, msg.accelerations):
@@ -135,22 +127,26 @@ class JointTargetMover(object):
             self._mi.moveAbsolute(self._motors[joint_name], position,
                 velocity, acceleration)
 
+    def onJointSpeed(self, msg):
+        #convert radians to steps
+        for joint_name, velocity, acceleration in zip(msg.joint_names, 
+                msg.velocities, msg.accelerations):
+            velocity = 1.0 * STEPS_PER_REVOLUTION * velocity / (2*math.pi)
+            acceleration = STEPS_PER_REVOLUTION * acceleration / (2*math.pi)
+            self._mi.moveVelocity(self._motors[joint_name], velocity, acceleration)
 
 
 if __name__ == '__main__':
     import code
     rospy.init_node('popsicle_arm_node')
     mi = MotorInterface()
-    jn = JointNudger(mi)
-    jtm = JointTargetMover(mi)
-    
-    rospy.Subscriber('/popsicle_arm/nudge_joint', NudgeJoint, jn.subscriberCallback)
-    rospy.Subscriber('/popsicle_arm/joint_target', JointTarget, jtm.subscriberCallback)
-    
+    jm = JointMover(mi)
+
+    rospy.Subscriber('/popsicle_arm/nudge_joint', NudgeJoint, jm.onNudgeJoint)
+    rospy.Subscriber('/popsicle_arm/joint_target', JointTarget, jm.onJointTarget)
+    rospy.Subscriber('/popsicle_arm/joint_speed', JointTarget, jm.onJointSpeed)
+
     rate = rospy.Rate(100) #Hz
-    try:
-        while not rospy.is_shutdown():
-            mi.update()
-            rate.sleep()
-    except rospy.ROSInterruptException:
-        pass
+    while not rospy.is_shutdown():
+        mi.update()
+        rate.sleep()

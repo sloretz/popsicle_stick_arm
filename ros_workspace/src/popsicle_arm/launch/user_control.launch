@@ -1,11 +1,5 @@
 <launch>
-    <param name="robot_description" command="$(find xacro)/xacro.py $(find popsicle_arm)/urdf/popsicle_bot.xacro" />
-    <node name="popsicle_arm_controller" pkg="popsicle_arm" type="popsicle_arm_node.py" />
-    <node name="joint_teleop" pkg="popsicle_arm" type="joint_teleop_node.py" />
-    
-    <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
-        <rosparam param="source_list">["/popsicle_arm/joint_state"]</rosparam>
-    </node>
-    <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" />
+    <include file="$(find popsicle_arm/launch/quick_teleop.launch"/>
+
     <node name="rviz" pkg="rviz" type="rviz" args="-d $(find popsicle_arm)/configs/view_arm.rviz" required="true" />
 </launch>
